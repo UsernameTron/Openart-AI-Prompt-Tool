@@ -1,5 +1,8 @@
 // OpenArt AI Prompt Optimizer - Core Logic
 
+// Make our optimizer available to the React app
+window.AdvancedPromptOptimizer = {};
+
 // Main PromptOptimizer class to handle prompt generation
 class PromptOptimizer {
   constructor() {

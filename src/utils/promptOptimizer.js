@@ -256,18 +256,37 @@ export function analyzeInput(input) {
  * @returns {string} - Optimized prompt
  */
 export function optimizePrompt(input, modelType = "flux", elements = null) {
-  // Analyze input if elements not provided
-  const extractedElements = elements || analyzeInput(input);
-  
-  // Choose the appropriate optimization function based on model type
-  switch (modelType.toLowerCase()) {
-    case "sdxl":
-      return createSdxlPrompt(extractedElements, input);
-    case "sd15":
-      return createSd15Prompt(extractedElements, input);
-    case "flux":
-    default:
-      return createFluxPrompt(extractedElements, input);
+  // Check if advanced optimizer is available
+  if (window.AdvancedPromptOptimizer) {
+    console.log("Using Advanced Optimizer for", modelType);
+    
+    // Use advanced optimizer if available
+    switch (modelType.toLowerCase()) {
+      case "sdxl":
+        return window.AdvancedPromptOptimizer.optimizeSDXL(input);
+      case "sd15":
+        return window.AdvancedPromptOptimizer.optimizeSd15(input);
+      case "flux":
+      default:
+        return window.AdvancedPromptOptimizer.optimizeFlux(input);
+    }
+  } else {
+    console.log("Using Basic Optimizer for", modelType);
+    
+    // Fallback to basic optimizer
+    // Analyze input if elements not provided
+    const extractedElements = elements || analyzeInput(input);
+    
+    // Choose the appropriate optimization function based on model type
+    switch (modelType.toLowerCase()) {
+      case "sdxl":
+        return createSdxlPrompt(extractedElements, input);
+      case "sd15":
+        return createSd15Prompt(extractedElements, input);
+      case "flux":
+      default:
+        return createFluxPrompt(extractedElements, input);
+    }
   }
 }
 
