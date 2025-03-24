@@ -1,0 +1,150 @@
+:root {
+  --primary-color: #4a86e8;
+  --primary-hover: #3a76d8;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --info-color: #17a2b8;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+  --border-color: #dee2e6;
+  --border-radius: 0.25rem;
+  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f7fa;
+  color: #333;
+  line-height: 1.6;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: var(--primary-hover);
+}
+
+button:disabled {
+  background-color: var(--secondary-color);
+  cursor: not-allowed;
+}
+
+.container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.card {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+textarea, input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  margin-bottom: 1rem;
+}
+
+.tabbed-pane {
+  margin-top: 1.5rem;
+}
+
+.tab-buttons {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  color: var(--secondary-color);
+  border-bottom: 2px solid transparent;
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  transition: all 0.3s;
+}
+
+.tab-button.active {
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.tab-button:hover {
+  color: var(--primary-hover);
+  background-color: transparent;
+}
+
+.result-box {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background-color: var(--light-color);
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.copy-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: var(--secondary-color);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.copy-button:hover {
+  background-color: var(--dark-color);
+}
+
+.helptext {
+  margin-top: 0.5rem;
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0.5rem;
+  }
+  
+  .card {
+    padding: 1rem;
+  }
+}
