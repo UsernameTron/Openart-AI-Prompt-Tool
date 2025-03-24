@@ -1,4 +1,4 @@
-// Bridge between standalone optimizer and React app
+// Bridge between standalone optimizer and React app - v1.0.1
 (function() {
   // When the window loads, check if the optimizer instance is ready
   window.addEventListener('DOMContentLoaded', function() {
