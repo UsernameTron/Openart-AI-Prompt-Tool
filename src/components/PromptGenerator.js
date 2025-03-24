@@ -202,6 +202,30 @@ function PromptGenerator() {
     sdxl: false,
     sd15: false
   });
+  const [isAdvancedMode, setIsAdvancedMode] = useState(false);
+  
+  // Check if advanced optimizer is available
+  useEffect(() => {
+    // Check if window.AdvancedPromptOptimizer exists and has the required methods
+    const hasAdvancedOptimizer = window.AdvancedPromptOptimizer && 
+      typeof window.AdvancedPromptOptimizer.optimizeFlux === 'function' &&
+      typeof window.AdvancedPromptOptimizer.optimizeSDXL === 'function' &&
+      typeof window.AdvancedPromptOptimizer.optimizeSd15 === 'function';
+    
+    console.log("Advanced optimizer available:", hasAdvancedOptimizer);
+    setIsAdvancedMode(hasAdvancedOptimizer);
+    
+    // Test it with a simple prompt if available
+    if (hasAdvancedOptimizer) {
+      try {
+        const testResult = window.AdvancedPromptOptimizer.optimizeFlux("Test from React");
+        console.log("Advanced optimizer test result:", testResult);
+      } catch (err) {
+        console.error("Error testing advanced optimizer:", err);
+        setIsAdvancedMode(false);
+      }
+    }
+  }, []);
   
   // Reset copied state after 2 seconds
   useEffect(() => {
@@ -245,14 +269,29 @@ function PromptGenerator() {
   const handleOptimize = () => {
     if (!input.trim()) return;
     
+    console.log(`Generating optimized prompts (Advanced mode: ${isAdvancedMode ? 'ON' : 'OFF'})`);
+    console.log("Input text:", input);
+    
     // Analyze input
     const analysisResult = analyzeInput(input);
     setAnalysis(analysisResult);
+    console.log("Analysis result:", analysisResult);
     
     // Generate optimized prompts for all models
+    console.log("Optimizing for Flux model...");
     const optimizedFlux = optimizePrompt(input, 'flux', analysisResult);
+    
+    console.log("Optimizing for SDXL model...");
     const optimizedSdxl = optimizePrompt(input, 'sdxl', analysisResult);
+    
+    console.log("Optimizing for SD1.5 model...");
     const optimizedSd15 = optimizePrompt(input, 'sd15', analysisResult);
+    
+    console.log("Optimized results:", {
+      flux: optimizedFlux,
+      sdxl: optimizedSdxl,
+      sd15: optimizedSd15
+    });
     
     setResults({
       flux: optimizedFlux,
@@ -269,6 +308,20 @@ function PromptGenerator() {
     <GeneratorContainer>
       <InputSection>
         <h2>Your Description</h2>
+        {isAdvancedMode && (
+          <div style={{ 
+            backgroundColor: '#10B981', 
+            color: 'white', 
+            padding: '5px 10px',
+            borderRadius: '4px',
+            display: 'inline-block',
+            marginBottom: '10px',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}>
+            Advanced Optimizer Active
+          </div>
+        )}
         <p>Enter your natural language description below to optimize it for AI image generation.</p>
         
         <TextArea
@@ -328,7 +381,24 @@ function PromptGenerator() {
       
       {results[model] && (
         <OutputSection>
-          <h2>Optimized Prompts</h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <h2>Optimized Prompts</h2>
+            {isAdvancedMode && (
+              <div style={{ 
+                backgroundColor: '#10B981', 
+                color: 'white', 
+                padding: '5px 10px',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}>
+                <span style={{ marginRight: '5px' }}>✨</span>
+                Advanced Optimization
+              </div>
+            )}
+          </div>
           
           <Label>Flux Model</Label>
           <ResultBox>
