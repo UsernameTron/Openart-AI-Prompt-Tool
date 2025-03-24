@@ -1,4 +1,110 @@
-// Constants for the optimizer
+// Import data from the advanced optimizer if available
+const modelStrategies = window.modelStrategies || {
+  flux: {
+    name: "Flux",
+    description: "Best for photorealistic images",
+    color: "indigo",
+    qualityTerms: {
+      basic: ["high quality", "detailed"],
+      high: ["high quality", "detailed", "hyperrealistic", "8K resolution"],
+      ultra: ["hyperrealistic", "8K resolution", "HDR", "detailed textures", "professional", "detailed", "high quality"]
+    },
+    styleTerms: {
+      photography: "professional photography, studio lighting",
+      painting: "detailed painting, professional lighting",
+      "digital-art": "digital art, detailed rendering",
+      illustration: "detailed illustration, professional lighting",
+      "3d-render": "3D render, ray tracing, octane render"
+    },
+    artistTerms: {
+      general: "professional artist",
+      modern: "by modern artist, contemporary style",
+      classic: "by classical artist, traditional style"
+    },
+    tokenLimit: null,
+    tips: [
+      "Word order matters, most important details first",
+      "Include technical specifications (resolution, lighting)",
+      "Artist references work well",
+      "Detail-heavy descriptions produce better results"
+    ]
+  },
+  sdxl: {
+    name: "SDXL",
+    description: "Balanced between realism and creativity",
+    color: "purple",
+    qualityTerms: {
+      basic: ["high quality"],
+      high: ["high quality", "detailed", "masterpiece"],
+      ultra: ["masterpiece", "best quality", "highly detailed"]
+    },
+    styleTerms: {
+      photography: "photography",
+      painting: "painting",
+      "digital-art": "digital art",
+      illustration: "illustration",
+      "3d-render": "3D render"
+    },
+    artistTerms: {
+      general: "artistic",
+      modern: "contemporary style",
+      classic: "classical style"
+    },
+    tokenLimit: 75,
+    tips: [
+      "75 token limit (words and phrases)",
+      "Use simple English, not complex descriptions",
+      "Include spatial descriptions",
+      "Quality terms matter (masterpiece, best quality)"
+    ]
+  },
+  sd15: {
+    name: "SD1.5",
+    description: "Good for stylistic and artistic outputs",
+    color: "green",
+    qualityTerms: {
+      basic: ["detailed"],
+      high: ["detailed", "masterpiece"],
+      ultra: ["masterpiece", "best quality", "highly detailed"]
+    },
+    styleTerms: {
+      photography: "35mm photography, cinematic, professional photography",
+      painting: "oil painting, professional, detailed brushwork",
+      "digital-art": "digital art, trending on artstation",
+      illustration: "professional illustration, detailed",
+      "3d-render": "3D render, octane render, ray tracing"
+    },
+    artistTerms: {
+      general: "artistic style",
+      modern: "modern art style",
+      classic: "classical art style"
+    },
+    tokenLimit: null,
+    tips: [
+      "Be specific about style and medium",
+      "Technical photography terms work well",
+      "Include \"magic words\" (masterpiece, detailed, etc.)",
+      "Benefits from precise description language"
+    ]
+  }
+};
+
+const magicWords = window.magicWords || {
+  quality: [
+    "masterpiece", "best quality", "highly detailed", "professional", 
+    "sharp focus", "intricate", "beautiful", "high definition"
+  ],
+  photography: [
+    "cinematic", "35mm film", "bokeh", "dof", "film grain", "golden hour", 
+    "sharp focus", "dramatic lighting"
+  ],
+  artistic: [
+    "trending on artstation", "digital painting", "concept art", "smooth", 
+    "detailed", "illustration", "matte painting"
+  ]
+};
+
+// Constants for the optimizer (fallback)
 const MODEL_ENHANCEMENTS = {
   flux: ["studio lighting", "8K resolution", "HDR", "detailed textures", "professional photography"],
   sdxl: ["high quality", "detailed", "intricate", "volumetric lighting", "smooth"],
@@ -175,26 +281,34 @@ function createFluxPrompt(elements, originalInput) {
   const { subjects, attributes, style, technical, sceneType } = elements;
   const parts = [];
   
-  // Start with scene type
-  if (sceneType === "portrait") {
-    parts.push("Hyperrealistic portrait");
-  } else if (sceneType === "landscape") {
-    parts.push("Hyperrealistic landscape");
-  } else {
-    parts.push("Hyperrealistic");
-  }
-  
-  // Add attributes
-  if (attributes.length > 0) {
-    parts.push(attributes.join(" "));
-  }
-  
-  // Add subjects
-  if (subjects.length > 0) {
-    parts.push(subjects.join(" "));
-  } else if (subjects.length === 0 && attributes.length === 0) {
+  // For Flux, we want to start with the processed input to preserve important details
+  if (subjects.length === 0 && attributes.length === 0) {
     // If no subjects or attributes were extracted, use original input
     parts.push(originalInput);
+  } else {
+    // Start with scene type specific structure
+    if (sceneType === "portrait") {
+      if (attributes.length > 0) {
+        parts.push(`Portrait of ${attributes.join(" ")} ${subjects.join(" ")}`);
+      } else {
+        parts.push(`Portrait of ${subjects.join(" ")}`);
+      }
+    } else if (sceneType === "landscape") {
+      if (attributes.length > 0) {
+        parts.push(`${attributes.join(" ")} landscape of ${subjects.join(" ")}`);
+      } else {
+        parts.push(`Landscape of ${subjects.join(" ")}`);
+      }
+    } else {
+      // For other types, combine attributes and subjects
+      if (attributes.length > 0 && subjects.length > 0) {
+        parts.push(`${attributes.join(" ")} ${subjects.join(" ")}`);
+      } else if (subjects.length > 0) {
+        parts.push(subjects.join(" "));
+      } else if (attributes.length > 0) {
+        parts.push(attributes.join(" "));
+      }
+    }
   }
   
   // Add style references
@@ -209,19 +323,31 @@ function createFluxPrompt(elements, originalInput) {
     }
   });
   
-  // Add Flux-specific enhancements
-  MODEL_ENHANCEMENTS.flux.forEach(enhancement => {
-    if (!partsContain(parts, enhancement)) {
-      parts.push(enhancement);
+  // For Flux model, add professional photography terms if not already present
+  if (!partsContain(parts, "photography") && !partsContain(parts, "photograph")) {
+    if (modelStrategies.flux.styleTerms && modelStrategies.flux.styleTerms.photography) {
+      parts.push(modelStrategies.flux.styleTerms.photography);
     }
-  });
+  }
   
-  // Add magic words
-  MAGIC_WORDS.flux.forEach(word => {
+  // Add quality terms - use advanced settings if available
+  let qualityTerms = [];
+  if (modelStrategies.flux.qualityTerms && modelStrategies.flux.qualityTerms.high) {
+    qualityTerms = modelStrategies.flux.qualityTerms.high;
+  } else {
+    qualityTerms = MAGIC_WORDS.flux;
+  }
+  
+  // Add quality terms
+  qualityTerms.forEach(word => {
     if (!partsContain(parts, word)) {
       parts.push(word);
     }
   });
+  
+  // Count tokens for information (for debugging)
+  const tokens = parts.join(", ").split(/\s+/).length;
+  console.log(`Flux prompt tokens: ${tokens}`);
   
   return parts.join(", ");
 }
@@ -236,46 +362,91 @@ function createSdxlPrompt(elements, originalInput) {
   const { subjects, attributes, style, technical, sceneType } = elements;
   const parts = [];
   
-  // Add attributes and subjects
-  if (attributes.length > 0 && subjects.length > 0) {
-    parts.push(`${attributes.join(" ")} ${subjects.join(" ")}`);
-  } else if (subjects.length > 0) {
-    parts.push(subjects.join(" "));
+  // For SDXL, we need to be very token-aware (75 token limit)
+  // Structure based on scene type
+  if (subjects.length === 0 && attributes.length === 0) {
+    // If no analysis was possible, use original input but keep it brief
+    const simpleInput = originalInput.split(' ').slice(0, 20).join(' ');
+    parts.push(simpleInput);
   } else {
-    // If no subjects were extracted, use original input
-    parts.push(originalInput);
+    // Scene-type specific phrasing (concise for SDXL)
+    if (sceneType === "portrait") {
+      if (attributes.length > 0) {
+        // Use only the most important attributes to save tokens
+        const coreAttributes = attributes.slice(0, 2);
+        parts.push(`${coreAttributes.join(" ")} portrait of ${subjects.join(" ")}`);
+      } else {
+        parts.push(`Portrait of ${subjects.join(" ")}`);
+      }
+    } else if (sceneType === "landscape") {
+      if (attributes.length > 0) {
+        // Use only the most important attributes to save tokens
+        const coreAttributes = attributes.slice(0, 2);
+        parts.push(`${coreAttributes.join(" ")} landscape with ${subjects.join(" ")}`);
+      } else {
+        parts.push(`Landscape with ${subjects.join(" ")}`);
+      }
+    } else {
+      // For other types, be concise
+      if (attributes.length > 0 && subjects.length > 0) {
+        // Use only the most important attributes and subjects to save tokens
+        const coreAttributes = attributes.slice(0, 2);
+        const coreSubjects = subjects.slice(0, 2);
+        parts.push(`${coreAttributes.join(" ")} ${coreSubjects.join(" ")}`);
+      } else if (subjects.length > 0) {
+        parts.push(subjects.slice(0, 3).join(" "));
+      } else if (attributes.length > 0) {
+        parts.push(attributes.slice(0, 3).join(" "));
+      }
+    }
   }
   
-  // Add style more concisely
+  // Add style more concisely (SDXL responds well to shorter style descriptions)
   if (style.length > 0) {
-    parts.push(`style of ${style.join(", ")}`);
+    parts.push(`style of ${style.slice(0, 1).join(", ")}`);
   }
   
   // Add only the most important technical aspects (limited to save tokens)
   if (technical.length > 0) {
-    parts.push(...technical.slice(0, 2));
+    parts.push(...technical.slice(0, 1));
   }
   
-  // Add only essential SDXL enhancements
-  const essentialEnhancements = MODEL_ENHANCEMENTS.sdxl.slice(0, 2);
-  essentialEnhancements.forEach(enhancement => {
-    if (!partsContain(parts, enhancement)) {
-      parts.push(enhancement);
-    }
-  });
+  // Add quality terms - use advanced settings if available
+  let qualityTerms = [];
+  if (modelStrategies.sdxl.qualityTerms && modelStrategies.sdxl.qualityTerms.basic) {
+    qualityTerms = modelStrategies.sdxl.qualityTerms.basic;
+  } else {
+    qualityTerms = MAGIC_WORDS.sdxl.slice(0, 2); // Only use a couple to save tokens
+  }
   
-  // Add magic words
-  MAGIC_WORDS.sdxl.forEach(word => {
+  // Add quality terms
+  qualityTerms.forEach(word => {
     if (!partsContain(parts, word)) {
       parts.push(word);
     }
   });
   
-  // Join and then truncate if too long (SDXL has 75 token limit)
+  // SDXL really needs "masterpiece" to get good results
+  if (!partsContain(parts, "masterpiece")) {
+    parts.push("masterpiece");
+  }
+  
+  // Join and then ensure we're under the 75 token limit
   let result = parts.join(", ");
   const tokens = result.split(/\s+/);
+  console.log(`SDXL prompt tokens: ${tokens.length}`);
+  
   if (tokens.length > 75) {
-    result = tokens.slice(0, 75).join(" ");
+    // If too long, preserve the most important part (beginning) and add quality terms at the end
+    const truncatedTokens = tokens.slice(0, 70);
+    // Add essential quality terms at the end if not already there
+    if (!truncatedTokens.includes("masterpiece")) {
+      truncatedTokens.push("masterpiece");
+    }
+    if (!truncatedTokens.includes("best") && !truncatedTokens.includes("quality")) {
+      truncatedTokens.push("best quality");
+    }
+    result = truncatedTokens.join(" ");
   }
   
   return result;
@@ -291,12 +462,19 @@ function createSd15Prompt(elements, originalInput) {
   const { subjects, attributes, style, technical, sceneType } = elements;
   const parts = [];
   
-  // SD1.5 often works better with style references first
+  // SD1.5 often works better with style references first (SD1.5 specific technique)
   if (style.length > 0) {
     parts.push(`In the style of ${style.join(", ")}`);
+  } else {
+    // If no specific style, specify a medium since SD1.5 works better with this
+    if (sceneType === "portrait" || sceneType === "landscape") {
+      parts.push("35mm photograph");
+    } else {
+      parts.push("detailed artwork");
+    }
   }
   
-  // For portrait scene type
+  // Structure based on scene type
   if (sceneType === "portrait") {
     if (attributes.length > 0) {
       parts.push(`Portrait of ${attributes.join(" ")} ${subjects.join(" ")}`);
@@ -304,9 +482,13 @@ function createSd15Prompt(elements, originalInput) {
       parts.push(`Portrait of ${subjects.join(" ")}`);
     }
   } 
-  // For landscape scene type
+  // For landscape scene type - SD1.5 does well with specific photography terms
   else if (sceneType === "landscape") {
-    parts.push(`Landscape photograph of ${subjects.join(" ")}, ${attributes.join(" ")}`);
+    if (attributes.length > 0) {
+      parts.push(`Landscape photograph of ${subjects.join(" ")}, ${attributes.join(" ")}`);
+    } else {
+      parts.push(`Landscape photograph of ${subjects.join(" ")}`);
+    }
   }
   // For other scene types or if no subjects/attributes were extracted
   else if (subjects.length === 0 && attributes.length === 0) {
@@ -316,29 +498,68 @@ function createSd15Prompt(elements, originalInput) {
       parts.push(`${attributes.join(" ")} ${subjects.join(" ")}`);
     } else if (subjects.length > 0) {
       parts.push(subjects.join(" "));
+    } else if (attributes.length > 0) {
+      parts.push(attributes.join(" "));
     }
   }
   
-  // Add technical aspects
+  // Add technical aspects - SD1.5 benefits from these
   technical.forEach(tech => {
     if (!partsContain(parts, tech)) {
       parts.push(tech);
     }
   });
   
-  // Add SD1.5 specific photography terms
-  MODEL_ENHANCEMENTS.sd15.forEach(enhancement => {
-    if (!partsContain(parts, enhancement)) {
-      parts.push(enhancement);
+  // Add SD1.5 specific style terms from our enhanced data if available
+  if (modelStrategies.sd15.styleTerms) {
+    // Choose appropriate style terms based on the scene type
+    if (sceneType === "portrait" && modelStrategies.sd15.styleTerms.photography) {
+      const styleTerm = modelStrategies.sd15.styleTerms.photography;
+      if (!partsContain(parts, styleTerm)) {
+        parts.push(styleTerm);
+      }
+    } else if (sceneType === "landscape" && modelStrategies.sd15.styleTerms.photography) {
+      const styleTerm = modelStrategies.sd15.styleTerms.photography;
+      if (!partsContain(parts, styleTerm)) {
+        parts.push(styleTerm);
+      }
     }
-  });
+  } else {
+    // Fallback to basic enhancements
+    MODEL_ENHANCEMENTS.sd15.forEach(enhancement => {
+      if (!partsContain(parts, enhancement)) {
+        parts.push(enhancement);
+      }
+    });
+  }
   
-  // Add magic words
-  MAGIC_WORDS.sd15.forEach(word => {
+  // Add quality terms - use advanced settings if available
+  let qualityTerms = [];
+  if (modelStrategies.sd15.qualityTerms && modelStrategies.sd15.qualityTerms.high) {
+    qualityTerms = modelStrategies.sd15.qualityTerms.high;
+  } else {
+    qualityTerms = MAGIC_WORDS.sd15;
+  }
+  
+  // SD1.5 NEEDS these magic words to perform well
+  qualityTerms.forEach(word => {
     if (!partsContain(parts, word)) {
       parts.push(word);
     }
   });
+  
+  // Always add these critical SD1.5 magic words
+  if (!partsContain(parts, "masterpiece")) {
+    parts.push("masterpiece");
+  }
+  
+  if (!partsContain(parts, "best quality")) {
+    parts.push("best quality");
+  }
+  
+  // Count tokens for information
+  const tokens = parts.join(", ").split(/\s+/).length;
+  console.log(`SD1.5 prompt tokens: ${tokens}`);
   
   return parts.join(", ");
 }
