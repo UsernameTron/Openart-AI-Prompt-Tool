@@ -1,35 +1,23 @@
-// Bridge between standalone optimizer and React app - v1.0.1
+// Bridge between standalone optimizer and React app - v1.0.2
 (function() {
-  // When the window loads, check if the optimizer instance is ready
+  // When the window loads, verify that the optimizer is ready
   window.addEventListener('DOMContentLoaded', function() {
     console.log("🔄 OpenArt Optimizer bridge initializing...");
     
-    // Create the optimizer instance
-    const optimizer = new PromptOptimizer();
-    
-    // Store optimization functions for React app to access
-    window.AdvancedPromptOptimizer = {
-      // Core optimization functions
-      optimizeFlux: function(input) {
-        return optimizer.optimizeFlux(input);
-      },
-      optimizeSDXL: function(input) {
-        return optimizer.optimizeSDXL(input);
-      },
-      optimizeSd15: function(input) {
-        return optimizer.optimizeSD15(input);
-      },
+    // Check if the optimizer is available
+    if (window.AdvancedPromptOptimizer) {
+      console.log("✅ OpenArt Optimizer bridge connected to advanced optimizer");
       
-      // Helper for React app
-      optimizeAll: function(input) {
-        return {
-          flux: optimizer.optimizeFlux(input),
-          sdxl: optimizer.optimizeSDXL(input),
-          sd15: optimizer.optimizeSD15(input)
-        };
+      // Test the optimizer with a simple prompt
+      const testPrompt = "test prompt";
+      try {
+        const result = window.AdvancedPromptOptimizer.optimizeFlux(testPrompt);
+        console.log("🧪 Test prompt result:", result);
+      } catch (err) {
+        console.error("❌ Error testing optimizer:", err);
       }
-    };
-    
-    console.log("✅ OpenArt Optimizer bridge ready");
+    } else {
+      console.warn("⚠️ Advanced optimizer not found - falling back to basic optimizer");
+    }
   });
 })();

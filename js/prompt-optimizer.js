@@ -1,8 +1,5 @@
 // OpenArt AI Prompt Optimizer - Core Logic
 
-// Make our optimizer available to the React app
-window.AdvancedPromptOptimizer = {};
-
 // Main PromptOptimizer class to handle prompt generation
 class PromptOptimizer {
   constructor() {
@@ -180,3 +177,28 @@ class PromptOptimizer {
 
 // Make the PromptOptimizer class available globally
 window.PromptOptimizer = PromptOptimizer;
+
+// Initialize the AdvancedPromptOptimizer directly here
+const optimizer = new PromptOptimizer();
+window.AdvancedPromptOptimizer = {
+  // Core optimization functions
+  optimizeFlux: function(input) {
+    return optimizer.optimizeFlux(input);
+  },
+  optimizeSDXL: function(input) {
+    return optimizer.optimizeSDXL(input);
+  },
+  optimizeSd15: function(input) {
+    return optimizer.optimizeSD15(input);
+  },
+  // Helper for React app
+  optimizeAll: function(input) {
+    return {
+      flux: optimizer.optimizeFlux(input),
+      sdxl: optimizer.optimizeSDXL(input),
+      sd15: optimizer.optimizeSD15(input)
+    };
+  }
+};
+
+console.log("✅ OpenArt Optimizer core loaded and ready");
