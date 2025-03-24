@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenArt AI Prompt Optimizer - Advanced</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #1e1e1e;
+            --card-bg: #252525;
+            --primary-text: #f3f4f6;
+            --secondary-text: #9ca3af;
+            --accent-color: #4f46e5;
+            --accent-hover: #6366f1;
+            --border-color: #374151;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--primary-text);
+        }
+        
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-text);
+        }
+        
+        .header-subtitle {
+            font-size: 0.9rem;
+            color: var(--secondary-text);
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .input-section, .output-section {
+            margin-bottom: 30px;
+        }
+        
+        .input-area {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            background-color: var(--secondary-bg);
+            color: var(--primary-text);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .input-area:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .model-selector {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+        }
+        
+        .model-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .model-btn {
+            padding: 8px 12px;
+            border-radius: 4px;
+            background-color: var(--secondary-bg);
+            color: var(--secondary-text);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .model-btn:hover {
+            background-color: rgba(79, 70, 229, 0.1);
+        }
+        
+        .model-btn.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-bg);
+            color: var(--primary-text);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #333;
+        }
+        
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .tabs-container {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 15px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            color: var(--secondary-text);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .tab:hover {
+            color: var(--primary-text);
+        }
+        
+        .tab.active {
+            color: var(--primary-text);
+            border-bottom-color: var(--accent-color);
+        }
+        
+        .tab-content {
+            display: none;
+            margin-bottom: 20px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .dropdown-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .dropdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .dropdown-content {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 4px 4px;
+            z-index: 10;
+        }
+        
+        .dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--secondary-bg);
+        }
+        
+        .selected-modifiers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+            min-height: 30px;
+        }
+        
+        .tag {
+            display: flex;
+            align-items: center;
+            background-color: rgba(79, 70, 229, 0.2);
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        .remove-tag {
+            margin-left: 8px;
+            background: none;
+            border: none;
+            color: var(--primary-text);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .result-container {
+            margin-top: 20px;
+        }
+        
+        .model-header {
+            padding: 12px 15px;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+        
+        .model-content {
+            padding: 15px;
+            background-color: var(--secondary-bg);
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+            position: relative;
+        }
+        
+        .prompt-result {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            line-height: 1.5;
+        }
+        
+        .copy-btn {
+            background: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 5px;
+            transition: opacity 0.2s;
+        }
+        
+        .copy-btn:hover {
+            opacity: 0.8;
+        }
+        
+        #all-models-section {
+            margin-top: 30px;
+        }
+        
+        .success-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background-color: var(--success-color);
+            color: white;
+            border-radius: 4px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 100;
+        }
+        
+        .success-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .model-selector {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .badge-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .modal-body {
+            padding: 15px;
+            max-height: calc(90vh - 130px);
+            overflow-y: auto;
+        }
+        
+        /* Switch to basic mode button */
+        .mode-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: background-color 0.2s;
+        }
+        
+        .mode-toggle:hover {
+            background-color: var(--accent-hover);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div>
+                <h1>OpenArt AI Prompt Optimizer<span class="badge badge-success">Advanced</span></h1>
+                <div class="header-subtitle">Transform natural language into optimized prompts for AI image generation</div>
+            </div>
+        </div>
+
+        <div class="input-section card">
+            <h2 class="text-xl font-medium mb-4">Your Description</h2>
+            <textarea id="input-prompt" class="input-area" placeholder="Describe what you want to see in the image..."></textarea>
+            
+            <div class="controls">
+                <div class="model-selector">
+                    <span class="text-sm mr-3">Optimize for:</span>
+                    <div class="model-buttons">
+                        <input type="radio" name="model" id="flux-radio" value="flux" checked class="hidden" />
+                        <label for="flux-radio" id="flux-btn" class="model-btn active">Flux</label>
+                        
+                        <input type="radio" name="model" id="sdxl-radio" value="sdxl" class="hidden" />
+                        <label for="sdxl-radio" id="sdxl-btn" class="model-btn">SDXL</label>
+                        
+                        <input type="radio" name="model" id="sd15-radio" value="sd15" class="hidden" />
+                        <label for="sd15-radio" id="sd15-btn" class="model-btn">SD1.5</label>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="examples-btn" class="btn btn-secondary">Load Example</button>
+                    <button id="clear-btn" class="btn btn-secondary">Clear</button>
+                    <button id="optimize-btn" class="btn btn-primary">Generate Optimized Prompt</button>
+                </div>
+            </div>
+            
+            <div class="tabs-container">
+                <div class="tab active" data-tab="style">Style</div>
+                <div class="tab" data-tab="quality">Quality</div>
+                <div class="tab" data-tab="lighting">Lighting</div>
+                <div class="tab" data-tab="medium">Medium</div>
+                <div class="tab" data-tab="perspective">Perspective</div>
+                <div class="tab" data-tab="photography">Photography</div>
+                <div class="tab" data-tab="environment">Environment</div>
+                <div class="tab" data-tab="color">Color</div>
+                <div class="tab" data-tab="mood">Mood</div>
+                <div class="tab" data-tab="effects">Effects</div>
+            </div>
+            
+            <div class="tab-content active" data-content="style">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="tab-content" data-content="quality">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="tab-content" data-content="lighting">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="tab-content" data-content="medium">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="tab-content" data-content="perspective">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="tab-content" data-content="photography">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="tab-content" data-content="environment">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="tab-content" data-content="color">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="tab-content" data-content="mood">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="tab-content" data-content="effects">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            
+            <div class="selected-modifiers mt-4" id="selected-modifiers">
+                <!-- Selected modifiers will appear here -->
+            </div>
+        </div>
+        
+        <div id="results-section" class="output-section card hidden">
+            <h2 class="text-xl font-medium mb-4">Optimized Result</h2>
+            
+            <div id="active-model-result">
+                <!-- Active model result will be displayed here -->
+            </div>
+            
+            <div class="mt-4">
+                <button id="all-prompts-btn" class="btn btn-secondary text-sm">Show All Models</button>
+            </div>
+            
+            <div id="all-models-section" class="hidden">
+                <h3 class="text-lg font-medium mt-6 mb-3">All Model Results</h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div>
+                        <div class="model-header bg-indigo-900 bg-opacity-20 rounded-t-lg">
+                            <h3 class="text-base font-medium text-indigo-400">Flux</h3>
+                            <p class="text-xs text-gray-400">Best for photorealistic images</p>
+                        </div>
+                        <div class="model-content">
+                            <div id="flux-result" class="prompt-result mb-2"></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-gray-500"><span id="flux-token-count">0</span> tokens</span>
+                                <button class="copy-btn text-indigo-400 hover:text-indigo-300" data-target="flux-result">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="model-header bg-purple-900 bg-opacity-20 rounded-t-lg">
+                            <h3 class="text-base font-medium text-purple-400">SDXL</h3>
+                            <p class="text-xs text-gray-400">Balanced between realism and creativity</p>
+                        </div>
+                        <div class="model-content">
+                            <div id="sdxl-result" class="prompt-result mb-2"></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-gray-500"><span id="sdxl-token-count">0</span> tokens</span>
+                                <button class="copy-btn text-purple-400 hover:text-purple-300" data-target="sdxl-result">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="model-header bg-green-900 bg-opacity-20 rounded-t-lg">
+                            <h3 class="text-base font-medium text-green-400">SD1.5</h3>
+                            <p class="text-xs text-gray-400">Good for stylistic and artistic outputs</p>
+                        </div>
+                        <div class="model-content">
+                            <div id="sd15-result" class="prompt-result mb-2"></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-gray-500"><span id="sd15-token-count">0</span> tokens</span>
+                                <button class="copy-btn text-green-400 hover:text-green-300" data-target="sd15-result">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mode-toggle" onclick="window.parent.postMessage('switch-to-basic', '*')">
+        Switch to Basic Mode
+    </div>
+    
+    <script src="/js/modifiers-data.js"></script>
+    <script src="/js/prompt-optimizer.js"></script>
+    <script src="/js/optimizer-direct.js"></script>
+    <script src="/js/ui-controller.js"></script>
+</body>
+</html>

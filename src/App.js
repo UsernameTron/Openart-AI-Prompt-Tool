@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -35,8 +35,91 @@ const TabButton = styled.button`
   }
 `;
 
+const AdvancedModeToggle = styled.div`
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #4a86e8;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  &:hover {
+    background: #3a76d8;
+  }
+`;
+
 function App() {
   const [activeTab, setActiveTab] = useState('generator');
+  const [useAdvancedUI, setUseAdvancedUI] = useState(false);
+
+  // Setup message listener for the iframe to switch back
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data === 'switch-to-basic') {
+        setUseAdvancedUI(false);
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
+  // Check if advanced optimizer is available
+  useEffect(() => {
+    // Wait for DOM content to be loaded and scripts to execute
+    const checkAdvancedAvailability = () => {
+      const hasAdvancedOptimizer = window.AdvancedPromptOptimizer && 
+        typeof window.AdvancedPromptOptimizer.optimizeFlux === 'function';
+      
+      console.log("Checking advanced optimizer availability:", hasAdvancedOptimizer);
+      
+      if (hasAdvancedOptimizer) {
+        // Auto-detect and offer advanced UI if optimizer is available
+        const autoSwitchToAdvanced = window.confirm(
+          "Advanced Optimizer detected! Would you like to switch to the advanced UI with additional modifiers and a dark theme?"
+        );
+        
+        if (autoSwitchToAdvanced) {
+          setUseAdvancedUI(true);
+        }
+      }
+    };
+
+    // Wait a moment for all scripts to load
+    const timer = setTimeout(checkAdvancedAvailability, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // If using advanced UI, create an iframe to load the standalone HTML
+  if (useAdvancedUI) {
+    return (
+      <>
+        <iframe 
+          src="/advanced.html" 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            border: 'none',
+            zIndex: 900
+          }}
+          title="Advanced OpenArt Prompt Optimizer"
+        />
+        <AdvancedModeToggle onClick={() => setUseAdvancedUI(false)}>
+          Switch to Basic UI
+        </AdvancedModeToggle>
+      </>
+    );
+  }
 
   return (
     <AppContainer>
@@ -63,6 +146,10 @@ function App() {
       </MainContent>
       
       <Footer />
+      
+      <AdvancedModeToggle onClick={() => setUseAdvancedUI(true)}>
+        Switch to Advanced UI
+      </AdvancedModeToggle>
     </AppContainer>
   );
 }
