@@ -177,3 +177,6 @@ class PromptOptimizer {
     };
   }
 }
+
+// Make the PromptOptimizer class available globally
+window.PromptOptimizer = PromptOptimizer;
