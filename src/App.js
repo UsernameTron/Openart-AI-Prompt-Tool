@@ -53,7 +53,8 @@ const AdvancedModeToggle = styled.div`
 
 function App() {
   const [activeTab, setActiveTab] = useState('generator');
-  const [useAdvancedUI, setUseAdvancedUI] = useState(false);
+  // Default to advanced UI by setting this to true
+  const [useAdvancedUI, setUseAdvancedUI] = useState(true);
 
   // Setup message listener for the iframe to switch back
   useEffect(() => {
@@ -72,29 +73,17 @@ function App() {
 
   // Check if advanced optimizer is available
   useEffect(() => {
-    // Wait for DOM content to be loaded and scripts to execute
-    const checkAdvancedAvailability = () => {
-      const hasAdvancedOptimizer = window.AdvancedPromptOptimizer && 
-        typeof window.AdvancedPromptOptimizer.optimizeFlux === 'function';
-      
-      console.log("Checking advanced optimizer availability:", hasAdvancedOptimizer);
-      
-      if (hasAdvancedOptimizer) {
-        // Auto-detect and offer advanced UI if optimizer is available
-        const autoSwitchToAdvanced = window.confirm(
-          "Advanced Optimizer detected! Would you like to switch to the advanced UI with additional modifiers and a dark theme?"
-        );
-        
-        if (autoSwitchToAdvanced) {
-          setUseAdvancedUI(true);
-        }
-      }
-    };
-
-    // Wait a moment for all scripts to load
-    const timer = setTimeout(checkAdvancedAvailability, 1000);
+    const hasAdvancedOptimizer = window.AdvancedPromptOptimizer && 
+      typeof window.AdvancedPromptOptimizer.optimizeFlux === 'function';
     
-    return () => clearTimeout(timer);
+    // Log to console for debugging
+    console.log("Advanced optimizer detected:", hasAdvancedOptimizer);
+    
+    // Only switch to basic UI if advanced optimizer is not available
+    if (!hasAdvancedOptimizer) {
+      console.log("Advanced optimizer not available, switching to basic UI");
+      setUseAdvancedUI(false);
+    }
   }, []);
 
   // If using advanced UI, create an iframe to load the standalone HTML
