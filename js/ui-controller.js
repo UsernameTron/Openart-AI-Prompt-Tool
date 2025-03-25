@@ -31,27 +31,47 @@ class UIController {
     const sdxlBtn = document.getElementById('sdxl-btn');
     const sd15Btn = document.getElementById('sd15-btn');
     
-    // Set initial active state
-    fluxBtn.classList.add('bg-indigo-600', 'text-white');
+    // Radio buttons
+    const fluxRadio = document.getElementById('flux-radio');
+    const sdxlRadio = document.getElementById('sdxl-radio');
+    const sd15Radio = document.getElementById('sd15-radio');
     
-    // Add click event listeners
+    // Set initial active state
+    fluxBtn.classList.add('active', 'bg-indigo-600', 'text-white');
+    this.activeModel = 'flux';
+    
+    // Helper function to reset and set active class
+    const setActiveModel = (model) => {
+      // Reset all buttons
+      fluxBtn.classList.remove('active', 'bg-indigo-600', 'bg-purple-600', 'bg-green-600', 'text-white');
+      sdxlBtn.classList.remove('active', 'bg-indigo-600', 'bg-purple-600', 'bg-green-600', 'text-white');
+      sd15Btn.classList.remove('active', 'bg-indigo-600', 'bg-purple-600', 'bg-green-600', 'text-white');
+      
+      // Set active model
+      this.activeModel = model;
+      
+      // Update active button style
+      if (model === 'flux') {
+        fluxBtn.classList.add('active', 'bg-indigo-600', 'text-white');
+        fluxRadio.checked = true;
+      } else if (model === 'sdxl') {
+        sdxlBtn.classList.add('active', 'bg-purple-600', 'text-white');
+        sdxlRadio.checked = true;
+      } else if (model === 'sd15') {
+        sd15Btn.classList.add('active', 'bg-green-600', 'text-white');
+        sd15Radio.checked = true;
+      }
+    };
+    
+    // Add click event listeners to labels
+    fluxBtn.addEventListener('click', () => setActiveModel('flux'));
+    sdxlBtn.addEventListener('click', () => setActiveModel('sdxl'));
+    sd15Btn.addEventListener('click', () => setActiveModel('sd15'));
+    
+    // Also handle radio change events
     document.querySelectorAll('input[name="model"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
-        // Reset all buttons
-        fluxBtn.classList.remove('bg-indigo-600', 'bg-purple-600', 'bg-green-600', 'text-white');
-        sdxlBtn.classList.remove('bg-indigo-600', 'bg-purple-600', 'bg-green-600', 'text-white');
-        sd15Btn.classList.remove('bg-indigo-600', 'bg-purple-600', 'bg-green-600', 'text-white');
-        
-        // Set active button
-        this.activeModel = e.target.value;
-        
-        if (this.activeModel === 'flux') {
-          fluxBtn.classList.add('bg-indigo-600', 'text-white');
-        } else if (this.activeModel === 'sdxl') {
-          sdxlBtn.classList.add('bg-purple-600', 'text-white');
-        } else if (this.activeModel === 'sd15') {
-          sd15Btn.classList.add('bg-green-600', 'text-white');
-        }
+        setActiveModel(e.target.value);
       });
     });
   }
